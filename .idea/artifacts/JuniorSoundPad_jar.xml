@@ -1,0 +1,13 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="JuniorSoundPad:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/JuniorSoundPad_jar</output-path>
+    <root id="archive" name="JuniorSoundPad.jar">
+      <element id="module-output" name="JuniorSoundPad" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/json/json/20210307/json-20210307.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/formdev/flatlaf-intellij-themes/1.1.1/flatlaf-intellij-themes-1.1.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/formdev/flatlaf/1.1.1/flatlaf-1.1.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/miglayout/miglayout/3.7.4/miglayout-3.7.4.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/lc/kra/system/system-hook/3.8/system-hook-3.8.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
