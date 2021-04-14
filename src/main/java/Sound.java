@@ -1,76 +1,56 @@
-import com.formdev.flatlaf.FlatDarculaLaf;
 import com.formdev.flatlaf.intellijthemes.FlatDarkPurpleIJTheme;
-import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.embed.swing.JFXPanel;
-import javafx.scene.Group;
-import javafx.scene.Scene;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TablePosition;
-import javafx.scene.control.TableView;
-import javafx.scene.control.cell.TextFieldTableCell;
 import lc.kra.system.keyboard.GlobalKeyboardHook;
 import lc.kra.system.keyboard.event.GlobalKeyAdapter;
 import lc.kra.system.keyboard.event.GlobalKeyEvent;
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import javax.imageio.ImageIO;
 import javax.sound.sampled.*;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 import java.io.*;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
-import java.util.*;
 
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import static javax.swing.JOptionPane.INFORMATION_MESSAGE;
 
 public class Sound extends JFrame {
-    static String knopka;
+    JPopupMenu popupMenu;
+    HashMap<Integer, String[]> data = new HashMap<Integer, String[]>();
+    JTable table;
     Thread thread = null;
     static JTextField field;
     JSONObject jsonObject;
     static HashMap hashMap = new HashMap();
-    static ObservableList<Infoclient> info = null;
     static Sound sound;
     static String directory = "";
-    int row;
-    Object val;
-    private TablePosition tablePosition;
-    public TableView.TableViewSelectionModel selectionModel;
-    public ObservableList selectedCells;
+
+    JPanel panel;
     int checked = 0;
     int checked2 = 0;
     JSlider slider;
-
+    DefaultTableModel defaultTableModel;
     public float seconds = 0;
     private final int BUFFER_SIZE = 128000;
     private AudioInputStream audioStream;
     private AudioFormat audioFormat;
     private SourceDataLine sourceLine;
     static String namevalue;
-    private TableColumn<Infoclient, String> clmnbind;
-    private TableColumn<Infoclient, String> clmnsize;
     static JButton start;
-    private TableColumn<Infoclient, String> clmnname;
     AudioInputStream audioInputStream;
     Clip clip;
     FloatControl gainControl;
     private ArrayList NameList = new ArrayList();
 
-    private TableView<Infoclient> tableView;
-    private TableColumn<Infoclient, Number> clmnid = new TableColumn<Infoclient, Number>("№");
+
     static JButton pause;
 
     static JFrame jFrame;
@@ -85,6 +65,8 @@ public class Sound extends JFrame {
         } catch (Exception ex) {
             System.err.println("Failed to initialize LaF");
         }
+
+
         jFrame = new JFrame();
         jFrame.setVisible(true);
         jFrame.setResizable(false);
@@ -99,10 +81,11 @@ public class Sound extends JFrame {
             e.printStackTrace();
         }
 
-        JPanel panel = new JPanel();
+         panel = new JPanel();
         jFrame.setContentPane(panel);
         panel.setLayout(null);
         jFrame.setTitle("JuniorSoundPad");
+
 
 
         //Menu
@@ -139,7 +122,7 @@ public class Sound extends JFrame {
         pause.setToolTipText("Pause");
         progressBar.setToolTipText("Progress");
         //table
-        JPopupMenu popupMenu = new JPopupMenu();
+         popupMenu = new JPopupMenu();
         popupMenu.add(new JMenuItem("Воспроизвести")).addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -161,11 +144,19 @@ public class Sound extends JFrame {
                     File f = new File(directory + "\\JuniorSoundPad\\Sound\\" + namevalue + ".wav");
                     f.delete();
 
-                    int selectedIndex = tableView.getSelectionModel().getSelectedIndex();
-                    tableView.getItems().remove(selectedIndex);
+
+
                     checked2 = 0;
+                    System.out.println(hashMap.size());
                     hashMap.remove(namevalue);
+                    data.remove(table.getSelectedRow());
                     jsonObject = new JSONObject(hashMap);
+                   defaultTableModel.removeRow(table.getSelectedRow());
+                   for(int i = 0; i<data.size(); i++){
+                       table.getModel().setValueAt(String.valueOf(i+1), i, 0);
+
+                   }
+
 
                     try {
                         FileWriter file = new FileWriter(directory + "\\JuniorSoundPad\\bind.json");
@@ -207,7 +198,7 @@ public class Sound extends JFrame {
                         return;
                     }
 
-                    if (hashMap.containsKey(namevalue)) {
+                    if (hashMap.containsValue(field.getText())||field.getText().equals("NumPad-0")) {
                         JOptionPane.showMessageDialog(jFrame, "Эта клавиша уже занята!", "Предупреждение!", ERROR_MESSAGE);
                         return;
                     }
@@ -218,7 +209,7 @@ public class Sound extends JFrame {
                 }
 
                 hashMap.put(namevalue, field.getText());
-                info.get(row).setbind(field.getText());
+                  table.getModel().setValueAt(field.getText(),table.getSelectedRow(),3);
                 jsonObject = new JSONObject(hashMap);
 
                 try {
@@ -248,47 +239,21 @@ public class Sound extends JFrame {
                     } catch (IOException ex) {
                         ex.printStackTrace();
                     }
+                    table.getModel().setValueAt("", table.getSelectedRow(), 3);
+
                 }
             }
         });
 
 
-        JFXPanel jfxPanel = new JFXPanel();
-        tableView = new TableView();
 
-        jfxPanel.setBounds(0, 35, jFrame.getWidth() - 7, 330);
-
-
-        jfxPanel.setComponentPopupMenu(popupMenu);
-
-        tableView.setMaxHeight(330);
-        tableView.setMaxWidth(jFrame.getWidth() - 7);
-
-
-        clmnname = new TableColumn<Infoclient, String>("Тег");
-        clmnsize = new TableColumn<Infoclient, String>("Длит.");
-        clmnbind = new TableColumn<Infoclient, String>("Клавиша");
-
-        clmnname.setStyle("-fx-alignment: CENTER-LEFT");
-        clmnsize.setStyle("-fx-alignment: CENTER-LEFT");
-        clmnid.setStyle("-fx-alignment: CENTER-LEFT");
-
-        clmnid.setPrefWidth(30);
-        clmnname.setPrefWidth(345);
-        clmnbind.setPrefWidth(110);
-        clmnbind.setEditable(true);
-        clmnsize.setPrefWidth(60);
-        tableView.getColumns().addAll(clmnid, clmnname, clmnsize, clmnbind);
-        tableView.getStylesheets().add("styletable.css");
-        Group group = new Group();
-        Scene scene = new Scene(group);
-        group.getChildren().addAll(tableView);
-        jfxPanel.setScene(scene);
         thread = new Thread();
         thread.setName("yourname");
 
-        jFrame.setJMenuBar(menuBar);
-        panel.add(jfxPanel);
+       jFrame.setJMenuBar(menuBar);
+
+
+
         panel.revalidate();
         pause.addActionListener(new ActionListener() {
             @Override
@@ -302,6 +267,7 @@ public class Sound extends JFrame {
 
             }
         });
+
 
         start.addActionListener(new ActionListener() {
 
@@ -365,25 +331,7 @@ public class Sound extends JFrame {
             }
         });
 
-        tableView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener() {
-            @Override
-            public void changed(ObservableValue observableValue, Object oldValue, Object newValue) {
-                //Check whether item is selected and set value of selected item to Label
-                if (tableView.getSelectionModel().getSelectedItem() != null) {
-                    if (checked2 == 1) {
-                        return;
-                    }
-                    selectionModel = tableView.getSelectionModel();
-                    selectedCells = selectionModel.getSelectedCells();
-                    tablePosition = (TablePosition) selectedCells.get(0);
-                    val = tablePosition.getTableColumn().getCellData(newValue);
 
-                    namevalue = val.toString();
-                    row = tablePosition.getRow();
-
-                }
-            }
-        });
 
     }
 
@@ -466,7 +414,7 @@ public class Sound extends JFrame {
 
 
         try {
-            info = sound.settableinfo();
+            sound.settableinfo();
         } catch (IOException e) {
             e.printStackTrace();
         } catch (UnsupportedAudioFileException e) {
@@ -474,7 +422,7 @@ public class Sound extends JFrame {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        sound.arttable(info);
+        sound.arttable();
 
 
         System.gc();
@@ -612,27 +560,79 @@ public class Sound extends JFrame {
 
     }
 
-    public void arttable(ObservableList<Infoclient> info) {
-        clmnname.setCellFactory(TextFieldTableCell.forTableColumn());
-        clmnname.setCellValueFactory(cellData -> cellData.getValue().getname());
+    public void arttable() {
+defaultTableModel = new DefaultTableModel();
+        defaultTableModel.addColumn("№");
+        defaultTableModel.addColumn("Тег");
+        defaultTableModel.addColumn("Длит.");
+        defaultTableModel.addColumn("Клавиша");
 
-        clmnsize.setCellFactory(TextFieldTableCell.forTableColumn());
-        clmnsize.setCellValueFactory(cellData -> cellData.getValue().getlengh());
 
-        clmnbind.setCellFactory(TextFieldTableCell.forTableColumn());
-        clmnbind.setCellValueFactory(cellData -> cellData.getValue().getbind());
 
-        clmnid.setCellValueFactory(cellData -> new ReadOnlyObjectWrapper<Number>(tableView.getItems().indexOf(cellData.getValue()) + 1));
-        tableView.setItems(info);
+
+        for(int i =0; i<data.size(); i++){
+
+            defaultTableModel.addRow(data.get(i));
+
+        }
+
+
+        table = new JTable(defaultTableModel) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        table.setBounds(0, 35, jFrame.getWidth() - 7, 330);
+        table.setForeground(Color.decode("#0ed9e0"));
+        table.setGridColor(Color.lightGray);
+        table.setRowHeight(25);
+        table.setSelectionBackground(Color.decode("#005797"));
+        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        table.setShowGrid(true);
+        table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+        table.getColumnModel().getColumn(0).setPreferredWidth(30);
+        table.getColumnModel().getColumn(1).setPreferredWidth(345);
+        table.getColumnModel().getColumn(2).setPreferredWidth(60);
+        table.getColumnModel().getColumn(3).setPreferredWidth(110);
+        table.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+
+                try {
+                    if (e.getButton() == MouseEvent.BUTTON3) {
+                        Point point = e.getPoint();
+                        int column = table.columnAtPoint(point);
+                        int row = table.rowAtPoint(point);
+                        table.setColumnSelectionInterval(column, column);
+                        table.setRowSelectionInterval(row, row);
+                    }
+                    namevalue = table.getModel().getValueAt(table.getSelectedRow(), 1).toString();
+                }catch (ArrayIndexOutOfBoundsException ex){
+                    return;
+                }
+
+
+            }
+        });
+        table.setFillsViewportHeight(true);
+          table.setComponentPopupMenu(popupMenu);
+        JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.setBounds(0, 35, jFrame.getWidth() - 7, 330);
+
+        panel.add(scrollPane);
+
+
         System.gc();
     }
 
-    public ObservableList<Infoclient> settableinfo() throws Exception {
+    public void settableinfo() throws Exception {
 
         String file;
         String bind = "";
         String prod;
-        ObservableList<Infoclient> info = FXCollections.observableArrayList();
+
         File dir = new File(directory + "\\JuniorSoundPad\\Sound");
 
         File[] arrFiles = dir.listFiles();
@@ -654,13 +654,11 @@ public class Sound extends JFrame {
                 bind = (String) hashMap.get(NameList.get(i));
             }
 
-
-            info.add(new Infoclient((String) NameList.get(i), String.format("%02d:%02d", ((int) Integer.parseInt(prod) % 3600) / 60, (int) Integer.parseInt(prod) % 60), bind));
+            data.put(i, new String[]{String.valueOf(i+1),(String) NameList.get(i), String.format("%02d:%02d", ((int) Integer.parseInt(prod) % 3600) / 60, (int) Integer.parseInt(prod) % 60), bind});
             bind = "";
         }
 
 
-        return info;
     }
 
 
