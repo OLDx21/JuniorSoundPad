@@ -6,7 +6,9 @@ public class Infoclient {
     private  SimpleStringProperty lengh;
     private SimpleStringProperty bind;
 
-
+static {
+    System.loadLibrary("Dll2");
+}
 
     public Infoclient(String name, String lengh, String  bind) {
         this.lengh = new SimpleStringProperty(lengh);
@@ -19,6 +21,12 @@ public class Infoclient {
     public Infoclient(){
 
     }
+    public static void Goes(){
+
+        printOne("GOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
+    }
+
+    native public static void printOne(String response);
 
 
     public SimpleStringProperty getname(){return name;}

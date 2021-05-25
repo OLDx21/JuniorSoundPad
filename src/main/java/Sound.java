@@ -18,11 +18,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import static javax.swing.JOptionPane.INFORMATION_MESSAGE;
 
 public class Sound extends JFrame {
+
+    AtomicInteger atomicInteger = new AtomicInteger(0);
     JPopupMenu popupMenu;
     HashMap<Integer, String[]> data = new HashMap<Integer, String[]>();
     JTable table;
@@ -34,7 +37,7 @@ public class Sound extends JFrame {
     static String directory = "";
 
     JPanel panel;
-    int checked = 0;
+   // volatile  int checked = 0;
     int checked2 = 0;
     JSlider slider;
     DefaultTableModel defaultTableModel;
@@ -48,7 +51,7 @@ public class Sound extends JFrame {
     AudioInputStream audioInputStream;
     Clip clip;
     FloatControl gainControl;
-    private ArrayList NameList = new ArrayList();
+    private ArrayList<String> NameList = new ArrayList<>();
 
 
     static JButton pause;
@@ -57,6 +60,13 @@ public class Sound extends JFrame {
 
     Sound() {
 
+//       String g =System.getProperty("user.dir");
+//       System.out.println(g);
+//        try {
+//            Process myappProcess = Runtime.getRuntime().exec("powershell.exe Start-Process " +g+" -verb RunAs");
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
         try {
 
             FlatDarkPurpleIJTheme.install();
@@ -90,14 +100,24 @@ public class Sound extends JFrame {
 
         //Menu
         JMenuBar menuBar = new JMenuBar();
-
+        menuBar.add(new JMenu("Файл")).add(new JMenuItem("Запись")).addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    RecordClass recordClass = new RecordClass(url2);
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                }
+            }
+        });
 
         start = new JButton("Start");
         pause = new JButton("Stop");
         start.setSize(50, 30);
-        JProgressBar progressBar = new JProgressBar();
-        JToolBar toolBar = new JToolBar();
 
+        JToolBar toolBar = new JToolBar();
+       JProgressBar progressBar = new JProgressBar();
+        progressBar.setValue(0);
         toolBar.add(start);
         toolBar.add(pause);
         toolBar.add(new JSeparator(SwingConstants.VERTICAL));
@@ -258,11 +278,16 @@ public class Sound extends JFrame {
         pause.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+
+
                 if (sourceLine != null && sourceLine.isRunning()) {
                     clip.stop();
+                    clip.flush();
                     sourceLine.stop();
-                    checked = 1;
+                    atomicInteger.set(1);
                     progressBar.setValue(0);
+                    sourceLine.drain();
+                    sourceLine.flush();
                 }
 
             }
@@ -274,7 +299,8 @@ public class Sound extends JFrame {
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                checked = 0;
+                atomicInteger.set(0);
+
                 if (namevalue == null) {
 
                     JOptionPane.showMessageDialog(jFrame, "конч?");
@@ -282,39 +308,57 @@ public class Sound extends JFrame {
                     return;
                 }
 
-                if (sourceLine != null && sourceLine.isRunning()) {
+                if (sourceLine != null && sourceLine.isRunning()||clip!=null&&clip.isRunning()) {
+                    atomicInteger.set(1);
                     clip.stop();
-                    thread.stop();
+                    clip.flush();
                     progressBar.setMaximum(100);
                     progressBar.setValue(0);
                     sourceLine.stop();
-
+                    sourceLine.drain();
+                    sourceLine.flush();
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException interruptedException) {
+                        interruptedException.printStackTrace();
+                    }
                 }
+
 
                 File file = new File(directory + "\\JuniorSoundPad\\Sound\\" + namevalue + ".wav");
                 try {
-                    seconds = Methods.getDuration(file) * 100; // Maybe no need to divide if the input is in seconds
 
+                    seconds = Methods.getDuration(file) * 100; // Maybe no need to divide if the input is in seconds
                     progressBar.setMaximum((int) seconds);
+
 
                 } catch (Exception exx) {
                     exx.printStackTrace();
                 }
+
                 thread = new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        for (int i = 0; i <= seconds; i++) {
-                            if (checked == 1) {
+
+
+
+                        for (int i =0;i <= seconds; i++) {
+                            if (atomicInteger.get()==1) {
                                 break;
                             }
+
                             progressBar.setValue(i);
+
                             try {
-                                Thread.sleep(1000 / 100);
+                                Thread.sleep(10);
                             } catch (InterruptedException interruptedException) {
                                 interruptedException.printStackTrace();
                             }
                         }
+                        atomicInteger.set(0);
                         progressBar.setValue(0);
+
+
                     }
                 });
                 thread.start();
@@ -357,6 +401,7 @@ public class Sound extends JFrame {
         BufferedReader reader = new BufferedReader(streamReader);
         for (String line; (line = reader.readLine()) != null; ) {
             directory = line;
+            RecordClass.directory = directory+ "\\JuniorSoundPad\\Sound";
         }
 
         inputStream.close();
@@ -426,7 +471,8 @@ public class Sound extends JFrame {
 
 
         System.gc();
-        GlobalKeyboardHook keyboardHook = new GlobalKeyboardHook(true);
+
+        GlobalKeyboardHook keyboardHook = new GlobalKeyboardHook(false);
 
 
         keyboardHook.addKeyListener(new GlobalKeyAdapter() {
@@ -451,7 +497,7 @@ public class Sound extends JFrame {
                                 }
                             }
 
-                            sound.playSound(new File(directory + "\\JuniorSoundPad\\Sound\\" + namevalue + ".wav"));
+                            start.doClick();
 
 
                         }
@@ -498,6 +544,7 @@ public class Sound extends JFrame {
                     break;
                 }
             }
+
             sourceLine = (SourceDataLine) mixer.getLine(infoIn);
             sourceLine.open(audioFormat);
         } catch (LineUnavailableException e) {
@@ -507,6 +554,7 @@ public class Sound extends JFrame {
 
 
         try {
+
             audioInputStream = AudioSystem.getAudioInputStream(soundFile);
             clip = AudioSystem.getClip();
             clip.open(audioInputStream);
@@ -524,8 +572,9 @@ public class Sound extends JFrame {
         }
 
         sourceLine.start();
-        FloatControl vc = (FloatControl) sourceLine.getControl(FloatControl.Type.MASTER_GAIN);
 
+
+        FloatControl vc = (FloatControl) sourceLine.getControl(FloatControl.Type.MASTER_GAIN);
 
         int f;
 
@@ -534,6 +583,7 @@ public class Sound extends JFrame {
         byte[] abData = new byte[BUFFER_SIZE];
         while (nBytesRead != -1) {
             try {
+
                 f = (16 * slider.getValue()) / 100;
                 gainControl.setValue(((16 * slider.getValue()) / 100) - 10);
                 vc.setValue(f - 10);
@@ -557,7 +607,6 @@ public class Sound extends JFrame {
 
         sourceLine.drain();
         sourceLine.close();
-
     }
 
     public void arttable() {
@@ -658,8 +707,6 @@ defaultTableModel = new DefaultTableModel();
             bind = "";
         }
 
-
     }
-
 
 }
