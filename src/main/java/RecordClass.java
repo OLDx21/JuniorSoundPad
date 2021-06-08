@@ -30,14 +30,14 @@ public class RecordClass {
         panel.setLayout(null);
         frame.add(panel);
         frame.setAlwaysOnTop(true);
-        frame.setTitle("Запись");
+        frame.setTitle("Record");
         frame.setBounds(0, 0, 300, 250);
         frame.setIconImage(ImageIO.read(url));
 
-        JButton button = new CircleBtn("Запись");
+        JButton button = new CircleBtn("Record");
         button.setBounds(100, 50, 100, 100);
         button.setBackground(Color.MAGENTA);
-        JTextField textField = new HintTextField("Название");
+        JTextField textField = new HintTextField("Name");
         textField.setBounds(70, 0, 150, 25);
         textField.setEditable(true);
 button.addMouseListener(new MouseAdapter() {
@@ -62,7 +62,7 @@ button.addMouseListener(new MouseAdapter() {
 
 
                 if (check == 0) {
-                    if (textField.getText().equals("Название")) {
+                    if (textField.getText().equals("Name")) {
 
                         return;
                     }
@@ -101,7 +101,7 @@ button.addMouseListener(new MouseAdapter() {
                 } else {
                     recorder.finish();
                     button.setBackground(Color.MAGENTA);
-                    button.setText("Запись");
+                    button.setText("Record");
                     check = 0;
                 }
             }

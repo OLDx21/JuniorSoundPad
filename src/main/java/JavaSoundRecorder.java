@@ -7,7 +7,7 @@ import java.io.*;
  */
 public class JavaSoundRecorder {
 
-   static File wavFile = new File("D:/RecordAudio.wav");
+   static File wavFile;
 
     // format of audio file
     AudioFileFormat.Type fileType = AudioFileFormat.Type.WAVE;

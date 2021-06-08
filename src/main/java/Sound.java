@@ -1,4 +1,5 @@
 import com.formdev.flatlaf.intellijthemes.FlatDarkPurpleIJTheme;
+import javatests.ProxyTests;
 import lc.kra.system.keyboard.GlobalKeyboardHook;
 import lc.kra.system.keyboard.event.GlobalKeyAdapter;
 import lc.kra.system.keyboard.event.GlobalKeyEvent;
@@ -14,10 +15,9 @@ import java.awt.event.*;
 import java.io.*;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
@@ -32,7 +32,7 @@ public class Sound extends JFrame {
     Thread thread = null;
     static JTextField field;
     JSONObject jsonObject;
-    static HashMap hashMap = new HashMap();
+    static ConcurrentHashMap hashMap = new ConcurrentHashMap();
     static Sound sound;
     static String directory = "";
 
@@ -100,7 +100,7 @@ public class Sound extends JFrame {
 
         //Menu
         JMenuBar menuBar = new JMenuBar();
-        menuBar.add(new JMenu("Файл")).add(new JMenuItem("Запись")).addActionListener(new ActionListener() {
+        menuBar.add(new JMenu("File")).add(new JMenuItem("Record")).addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
@@ -108,6 +108,27 @@ public class Sound extends JFrame {
                 } catch (IOException ioException) {
                     ioException.printStackTrace();
                 }
+            }
+        });
+
+        menuBar.getMenu(0).add(new JMenuItem("Synchronized")).addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+                hashMap.forEach((k, v) -> deleteif((String) k));
+
+                jsonObject = new JSONObject(hashMap);
+
+                try {
+                    FileWriter file = new FileWriter(directory + "\\JuniorSoundPad\\bind.json");
+                    file.write(jsonObject.toString());
+                    file.flush();
+                    file.close();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+
+                JOptionPane.showMessageDialog(panel, "Successfully synced!", "Information", JOptionPane.INFORMATION_MESSAGE);
             }
         });
 
@@ -381,7 +402,7 @@ public class Sound extends JFrame {
 
     public static void main(String[] args) throws IOException {
         File file10 = new File("C:\\Games\\JuniorSoundPad");
-        if (file10.exists() == false) {
+        if (!file10.exists()) {
 
             file10.mkdirs();
             try {
@@ -442,11 +463,13 @@ public class Sound extends JFrame {
                 String line;
                 while ((line = br.readLine()) != null) {
                     stringBuilder.append(line + "\n");
+
                 }
                 if (!(stringBuilder.length() == 0)) {
                     JSONObject jsonObject = new JSONObject(stringBuilder.toString());
 
                     hashMap.putAll(Methods.toMap(jsonObject));
+
                 }
                 br.close();
             } catch (FileNotFoundException e) {
@@ -610,7 +633,7 @@ public class Sound extends JFrame {
     }
 
     public void arttable() {
-defaultTableModel = new DefaultTableModel();
+        defaultTableModel = new DefaultTableModel();
         defaultTableModel.addColumn("№");
         defaultTableModel.addColumn("Тег");
         defaultTableModel.addColumn("Длит.");
@@ -697,7 +720,9 @@ defaultTableModel = new DefaultTableModel();
 
 
             prod = String.valueOf(Methods.getDuration(new File(file)));
+
             prod = prod.substring(0, prod.indexOf("."));
+
             if (hashMap.containsKey(NameList.get(i))) {
 
                 bind = (String) hashMap.get(NameList.get(i));
@@ -705,6 +730,14 @@ defaultTableModel = new DefaultTableModel();
 
             data.put(i, new String[]{String.valueOf(i+1),(String) NameList.get(i), String.format("%02d:%02d", ((int) Integer.parseInt(prod) % 3600) / 60, (int) Integer.parseInt(prod) % 60), bind});
             bind = "";
+        }
+
+    }
+    public void deleteif(String key){
+
+        if(!NameList.contains(key)){
+            hashMap.remove(key);
+
         }
 
     }
