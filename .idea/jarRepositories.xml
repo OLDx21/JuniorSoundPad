@@ -2,9 +2,24 @@
 <project version="4">
   <component name="RemoteRepositoriesConfiguration">
     <remote-repository>
+      <option name="id" value="casedrive-snapshot" />
+      <option name="name" value="casedrive-snapshot" />
+      <option name="url" value="https://repository.anotheria.net/content/repositories/casedrive-snapshots" />
+    </remote-repository>
+    <remote-repository>
       <option name="id" value="central" />
       <option name="name" value="Central Repository" />
       <option name="url" value="https://repo.maven.apache.org/maven2" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="mya-snapshot" />
+      <option name="name" value="mya-snapshot" />
+      <option name="url" value="https://repository.anotheria.net/content/repositories/mya-snapshots" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="mya-release" />
+      <option name="name" value="mya-release" />
+      <option name="url" value="https://repository.anotheria.net/content/repositories/mya-releases" />
     </remote-repository>
     <remote-repository>
       <option name="id" value="central" />
@@ -12,9 +27,29 @@
       <option name="url" value="https://repo1.maven.org/maven2" />
     </remote-repository>
     <remote-repository>
+      <option name="id" value="central" />
+      <option name="name" value="central" />
+      <option name="url" value="https://repo1.maven.org/maven2/" />
+    </remote-repository>
+    <remote-repository>
       <option name="id" value="jboss.community" />
       <option name="name" value="JBoss Community repository" />
       <option name="url" value="https://repository.jboss.org/nexus/content/repositories/public/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="anonexus" />
+      <option name="name" value="anonexus" />
+      <option name="url" value="https://nexus.anotheria.net/nexus/content/groups/public" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="casedrive-release" />
+      <option name="name" value="casedrive-release" />
+      <option name="url" value="https://repository.anotheria.net/content/repositories/casedrive-releases" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="ano-commercial" />
+      <option name="name" value="ano-commercial" />
+      <option name="url" value="https://repository.anotheria.net/content/groups/public" />
     </remote-repository>
   </component>
 </project>
